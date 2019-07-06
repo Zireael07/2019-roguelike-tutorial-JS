@@ -45,6 +45,24 @@ function processKeyDown(key, player){
     }
 }
 
+// stubs called by jQuery onclick()
+// ES 6 feature - export!
+export function moveUp() {
+    Game.player.move(0, -1);
+}
+
+export function moveDown() {
+    Game.player.move(0, 1);
+}
+
+export function moveLeft() {
+    Game.player.move(-1, 0);
+}
+
+export function moveRight() {
+    Game.player.move(1, 0);
+}
+
 function setup(canvas) {
     console.log("setup...");
     //setup game

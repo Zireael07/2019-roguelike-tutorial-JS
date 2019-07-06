@@ -5,10 +5,39 @@
     <meta charset="UTF-8">
     <title>Veins of the Earth</title>
   </head>
+  <script src="jquery-3.3.1.js"></script>
+  <script type="module" src="keypad.js"></script>
   <script src="resources.js"></script>
-  <script src="main.js"></script>
+  <script type="module" src="main.js"></script>
   <body>
     <div class="wrapper"> 
     <canvas id="canvas-game"></canvas>
+    <!-- based on Ondrej Zara's js-like -->
+    <div id="keypad">
+      <table>
+      <tbody>
+      <tr>
+      <!-- button tag can be buggy so we use input type=button -->
+      <!-- using hex values for Unicode characters -->
+      <td><input class="key_arrow1" type="button" value="&#9700" > </td>
+      <!-- for consistency -->
+      <td><input class="key_arrow2" type="button" value="&#9650"> </td>
+      <td><input class="key_arrow3" type="button" value="&#9701" > </td>
+      </tr>
+      <tr>
+      <td><input class="key_arrow4" type="button" value= "&#9664"> </td>
+      <!-- midline ellipsis -->
+      <td><input class="key_arrow5" type="button" value= "&#8943"> </td>
+      <td><input class="key_arrow6" type="button" value= "&#9654"> </td>
+      </tr>
+      <tr>
+      <td><input class="key_arrow7" type="button" value= "&#9699"> </td>
+      <!-- for consistency -->
+      <td><input class="key_arrow8" type="button" value= "&#9660"> </td>
+      <td><input class="key_arrow9" type="button" value="&#9698"> </td>
+      </tr>
+      </tbody>
+      </table>
+      </div>
   </body>
 </html>
