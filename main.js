@@ -1,3 +1,5 @@
+import { GameMap } from "./gamemap.js"
+
 var player = {
     _x: 0,
     _y: 0,
@@ -8,16 +10,39 @@ var player = {
     }
 }
 
-
 var Game = {
     canvas: null,
     context: null,
     player: null,
+    _map: null,
 
     newGame: function(cnv) {
         this.canvas = cnv;
         this.context = cnv.getContext("2d");
         this.player = player;
+    },
+
+    generateMap: function() {
+        let map = [];
+        for (let x = 0; x < 20; x++) {
+          map.push([]);
+          for (let y = 0; y < 20; y++) {
+            map[x].push(1); //floor
+          }
+        }
+
+        //walls around the map
+        for (let x =0; x < 20; x++){
+            map[x][0] = 0;
+            map[x][19] = 0;
+        }
+
+        for (let y = 0; y < 20; y++){
+            map[0][y] = 0;
+            map[19][y] = 0;
+        }
+
+        this._map = new GameMap(map);
     },
 
     //rendering functions from here down
@@ -67,6 +92,7 @@ function setup(canvas) {
     console.log("setup...");
     //setup game
     Game.newGame(canvas);
+    Game.generateMap();
 
     //what it says on the tin
     function mainLoop() {
