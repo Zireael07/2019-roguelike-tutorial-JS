@@ -11,18 +11,19 @@ var player = {
         var ty = this._y + dy
         
         if (tx < 0 || ty < 0){
-            return
+            return false;
         }
         if (tx > map._width || ty > map._height){
-            return
+            return false;
         }
     
         if (map._tiles[tx][ty] == 0){
-            return
+            return false;
         }
 
         this._x = this._x + dx;
         this._y = this._y + dy;
+        return true;
     }
 }
 
@@ -131,30 +132,40 @@ var Game = {
 // key is the key code
 function processKeyDown(key){
     switch (key) {
-      case 37: Game.player.move(-1, 0, Game._map); break;  //left
-      case 39: Game.player.move(1, 0, Game._map);  break;   //right
-      case 38: Game.player.move(0, -1, Game._map); break;     //up
-      case 40: Game.player.move(0, 1, Game._map);  break;    //down
+      case 37: moveLeft(); break;  //left
+      case 39: moveRight();  break;   //right
+      case 38: moveUp(); break;     //up
+      case 40: moveDown();  break;    //down
       default: console.log(key);
     }
 }
 
 // stubs called by jQuery onclick()
 // ES 6 feature - export!
+// they are also used by key input
 export function moveUp() {
-    Game.player.move(0, -1);
+    if (Game.player.move(0, -1, Game._map)){
+        Game.refreshVisibility();
+    }
+
 }
 
 export function moveDown() {
-    Game.player.move(0, 1);
+    if (Game.player.move(0, 1, Game._map)){
+        Game.refreshVisibility();
+    }
 }
 
 export function moveLeft() {
-    Game.player.move(-1, 0);
+    if (Game.player.move(-1, 0, Game._map)){
+        Game.refreshVisibility();
+    }
 }
 
 export function moveRight() {
-    Game.player.move(1, 0);
+    if (Game.player.move(1, 0, Game._map)){
+        Game.refreshVisibility();
+    }
 }
 
 function setup(canvas) {

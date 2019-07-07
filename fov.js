@@ -73,6 +73,8 @@ function createFOV(width, height, reveal, isOpaque) {
   }
 
   return function refresh(cx, cy, radius) {
+    //fix (reveal source tile)
+    reveal(cx, cy);
     for (let octant of octantTransforms) {
       castShadows(cx, cy, 1, 1, 0, octant, radius);
     }
