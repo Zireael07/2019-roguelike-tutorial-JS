@@ -50,11 +50,39 @@ var Game = {
         this.context.fillStyle = 'rgb(0,0,0)';
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
     },
+    isoPos: function(x,y) {
+        // those values work for Gervais isometric tiles
+        let HALF_TILE_HEIGHT = 16
+        let HALF_TILE_WIDTH = 32
+        let offset_x = 80
+        let tile_x = (x - y) * HALF_TILE_WIDTH + offset_x
+        let tile_y = (x + y) * HALF_TILE_HEIGHT
+  
+        return [tile_x,tile_y];
+    },
+    drawMapTile: function(x,y, tile){
+        if (tile == 0){
+            this.renderGfxTile(resources.get("gfx/wall_stone.png"), x, y);
+        }
+        else{
+            this.renderGfxTile(resources.get("gfx/floor_cave.png"), x, y);
+        }
+    },
+    renderMap: function(map){
+    for (let x =0; x < map._width; x++){
+        for (let y=0; y < map._height; y++){
+            let iso = this.isoPos(x,y);
+            this.drawMapTile(iso[0], iso[1], map._tiles[x][y]);
+        }
+    }
+    },
     renderPlayer: function(){
-        this.renderGfxTile(resources.get("gfx/human_m.png"), this.player._x, this.player._y);
+        let iso = this.isoPos(this.player._x, this.player._y);
+        // entities need a slight offset to be placed more or less centrally
+        this.renderGfxTile(resources.get("gfx/human_m.png"), iso[0]+8, iso[1]+8);
     },
     renderGfxTile: function(img, x, y) {
-        this.context.drawImage(img, x*32, y*32);
+        this.context.drawImage(img, x, y);
     }
 }
 
@@ -98,6 +126,7 @@ function setup(canvas) {
     function mainLoop() {
         //test
         Game.clearGame();
+        Game.renderMap(Game._map);
         Game.renderPlayer();
         requestAnimationFrame(mainLoop);
     }
@@ -117,7 +146,9 @@ window.onload = function() {
 
     //load assets
     resources.load([
-        "gfx/human_m.png"
+        "gfx/human_m.png",
+        "gfx/wall_stone.png",
+        "gfx/floor_cave.png",
     ]);
     resources.setReady(setup, canvas);
 
