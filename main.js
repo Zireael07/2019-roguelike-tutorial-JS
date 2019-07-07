@@ -1,12 +1,26 @@
 import { GameMap } from "./gamemap.js"
 
 var player = {
-    _x: 0,
-    _y: 0,
+    _x: 1,
+    _y: 1,
 
-    move: function(x,y) {
-        this._x = this._x + x;
-        this._y = this._y + y;
+    move: function(dx,dy, map) {
+        var tx = this._x + dx
+        var ty = this._y + dy
+        
+        if (tx < 0 || ty < 0){
+            return
+        }
+        if (tx > map._width || ty > map._height){
+            return
+        }
+    
+        if (map._tiles[tx][ty] == 0){
+            return
+        }
+
+        this._x = this._x + dx;
+        this._y = this._y + dy;
     }
 }
 
@@ -88,12 +102,12 @@ var Game = {
 
 // main key input handler
 // key is the key code
-function processKeyDown(key, player){
+function processKeyDown(key){
     switch (key) {
-      case 37: player.move(-1, 0); break;  //left
-      case 39: player.move(1, 0);  break;   //right
-      case 38: player.move(0, -1); break;     //up
-      case 40: player.move(0, 1);  break;    //down
+      case 37: Game.player.move(-1, 0, Game._map); break;  //left
+      case 39: Game.player.move(1, 0, Game._map);  break;   //right
+      case 38: Game.player.move(0, -1, Game._map); break;     //up
+      case 40: Game.player.move(0, 1, Game._map);  break;    //down
       default: console.log(key);
     }
 }
