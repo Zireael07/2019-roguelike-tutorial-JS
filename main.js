@@ -1,5 +1,7 @@
 import { GameMap } from "./gamemap.js"
 
+import { createFOV } from "./fov.js";
+
 var player = {
     _x: 1,
     _y: 1,
@@ -29,11 +31,27 @@ var Game = {
     context: null,
     player: null,
     _map: null,
+    visible: null,
 
     newGame: function(cnv) {
         this.canvas = cnv;
         this.context = cnv.getContext("2d");
         this.player = player;
+        this.visible = new Set();
+    },
+    setupFOV: function() {
+        this.refreshFOV = createFOV(
+            this._map._width,
+            this._map._height,
+            (x, y) => this.revealTile(x, y),
+            (x, y) => this._map.isOpaque(x, y)
+          );
+        
+        this.refreshVisibility();
+    },
+    refreshVisibility: function() {
+        this.visible.clear();
+        this.refreshFOV(this.player._x, this.player._y, 4);
     },
 
     generateMap: function() {
@@ -57,6 +75,13 @@ var Game = {
         }
 
         this._map = new GameMap(map);
+    },
+    //FOV
+    isVisible: function(x, y) {
+        return this.visible.has(`${x},${y}`);
+    },
+    revealTile: function(x, y) {
+        this.visible.add(`${x},${y}`);
     },
 
     //rendering functions from here down
@@ -85,8 +110,10 @@ var Game = {
     renderMap: function(map){
     for (let x =0; x < map._width; x++){
         for (let y=0; y < map._height; y++){
-            let iso = this.isoPos(x,y);
-            this.drawMapTile(iso[0], iso[1], map._tiles[x][y]);
+            if (Game.isVisible(x,y)){
+                let iso = this.isoPos(x,y);
+                this.drawMapTile(iso[0], iso[1], map._tiles[x][y]);
+            }
         }
     }
     },
@@ -135,6 +162,8 @@ function setup(canvas) {
     //setup game
     Game.newGame(canvas);
     Game.generateMap();
+    //uses map dimensions so has to come after
+    Game.setupFOV();
 
     //what it says on the tin
     function mainLoop() {

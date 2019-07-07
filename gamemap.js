@@ -17,6 +17,10 @@ class GameMap {
         return this._tiles[x][y];
       }
     };
+
+    isOpaque(x, y) {
+      return this._tiles[x][y] == 0;
+    };
 }
 
 export { GameMap }
