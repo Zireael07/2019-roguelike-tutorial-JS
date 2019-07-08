@@ -1,6 +1,7 @@
 import { GameMap } from "./gamemap.js"
 
 import { createFOV } from "./fov.js";
+import { tintImage } from "./tint_image.js";
 
 var player = {
     _x: 1,
@@ -33,12 +34,14 @@ var Game = {
     player: null,
     _map: null,
     visible: null,
+    seen: null,
 
     newGame: function(cnv) {
         this.canvas = cnv;
         this.context = cnv.getContext("2d");
         this.player = player;
         this.visible = new Set();
+        this.seen = new Set();
     },
     setupFOV: function() {
         this.refreshFOV = createFOV(
@@ -81,8 +84,13 @@ var Game = {
     isVisible: function(x, y) {
         return this.visible.has(`${x},${y}`);
     },
+    isSeen(x, y) {
+        return this.seen.has(`${x},${y}`);
+    },
     revealTile: function(x, y) {
-        this.visible.add(`${x},${y}`);
+        const id = `${x},${y}`;
+        this.visible.add(id);
+        this.seen.add(id);
     },
 
     //rendering functions from here down
@@ -108,12 +116,23 @@ var Game = {
             this.renderGfxTile(resources.get("gfx/floor_cave.png"), x, y);
         }
     },
+    drawMapTileTint: function(x,y, tile){
+        if (tile == 0){
+            Game.context.drawImage(tintImage(resources.get("gfx/wall_stone.png"), "wall_stone_gray", 'rgb(127, 127,127)', 0.5), x, y);
+        }
+        else{
+            Game.context.drawImage(tintImage(resources.get("gfx/floor_cave.png"), "floor_cave_gray", 'rgb(127, 127, 127)', 0.5), x, y);
+        }
+    },
     renderMap: function(map){
     for (let x =0; x < map._width; x++){
         for (let y=0; y < map._height; y++){
+            let iso = this.isoPos(x,y);
             if (Game.isVisible(x,y)){
-                let iso = this.isoPos(x,y);
                 this.drawMapTile(iso[0], iso[1], map._tiles[x][y]);
+            }
+            else if (Game.isSeen(x,y)){
+                this.drawMapTileTint(iso[0], iso[1], map._tiles[x][y]);
             }
         }
     }
