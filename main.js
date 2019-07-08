@@ -1,32 +1,11 @@
+import { Entity } from "./entity.js"
+
 import { GameMap } from "./gamemap.js"
 
 import { createFOV } from "./fov.js";
 import { tintImage } from "./tint_image.js";
 
-var player = {
-    _x: 1,
-    _y: 1,
-
-    move: function(dx,dy, map) {
-        var tx = this._x + dx
-        var ty = this._y + dy
-        
-        if (tx < 0 || ty < 0){
-            return false;
-        }
-        if (tx > map._width || ty > map._height){
-            return false;
-        }
-    
-        if (map._tiles[tx][ty] == 0){
-            return false;
-        }
-
-        this._x = this._x + dx;
-        this._y = this._y + dy;
-        return true;
-    }
-}
+var player = new Entity(1, 1);
 
 var Game = {
     canvas: null,
