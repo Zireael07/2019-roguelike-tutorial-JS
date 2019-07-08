@@ -35,11 +35,13 @@ var Game = {
     _map: null,
     visible: null,
     seen: null,
+    rng: null,
 
     newGame: function(cnv) {
         this.canvas = cnv;
         this.context = cnv.getContext("2d");
         this.player = player;
+        this.rng = aleaPRNG();
         this.visible = new Set();
         this.seen = new Set();
     },
