@@ -15,6 +15,7 @@ var Game = {
     visible: null,
     seen: null,
     rng: null,
+    entities: [],
 
     newGame: function(cnv) {
         this.canvas = cnv;
@@ -60,6 +61,21 @@ var Game = {
         }
 
         this._map = new GameMap(map);
+    },
+    placeEntities: function(map, max) {
+        // Get a random number of monsters
+        var num = this.rng.range(0, max);
+
+        // taking a shortcut here: this map is rectangular so we can just place in rectangle
+        for (let i = 0; i < num; i++){
+            // Choose a random location in the map
+            let x = this.rng.range(1, (map._height - 2))
+            let y = this.rng.range(1, (map._width - 2))
+
+            //console.log(x,y);
+            this.entities.push(new Entity(x,y));
+        }
+
     },
     //FOV
     isVisible: function(x, y) {
@@ -123,6 +139,15 @@ var Game = {
         // entities need a slight offset to be placed more or less centrally
         this.renderGfxTile(resources.get("gfx/human_m.png"), iso[0]+8, iso[1]+8);
     },
+    renderEntities: function(entities){
+        for (let i = 0; i < entities.length; i++){
+            if (Game.isSeen(entities[i]._x, entities[i]._y)){
+                let iso = this.isoPos(entities[i]._x, entities[i]._y);
+                // entities need a slight offset to be placed more or less centrally
+                this.renderGfxTile(resources.get("gfx/kobold.png"), iso[0]+8, iso[1]+8);
+            }
+        }
+    },
     renderGfxTile: function(img, x, y) {
         this.context.drawImage(img, x, y);
     }
@@ -173,6 +198,7 @@ function setup(canvas) {
     //setup game
     Game.newGame(canvas);
     Game.generateMap();
+    Game.placeEntities(Game._map, 3);
     //uses map dimensions so has to come after
     Game.setupFOV();
 
@@ -182,6 +208,7 @@ function setup(canvas) {
         Game.clearGame();
         Game.renderMap(Game._map);
         Game.renderPlayer();
+        Game.renderEntities(Game.entities);
         requestAnimationFrame(mainLoop);
     }
     
@@ -203,6 +230,7 @@ window.onload = function() {
         "gfx/human_m.png",
         "gfx/wall_stone.png",
         "gfx/floor_cave.png",
+        "gfx/kobold.png",
     ]);
     resources.setReady(setup, canvas);
 
