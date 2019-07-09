@@ -21,6 +21,9 @@ class GameMap {
     isOpaque(x, y) {
       return this._tiles[x][y] == 0;
     };
+    isBlocked(x, y){
+      return this._tiles[x][y] == 0;
+    };
 }
 
 export { GameMap }

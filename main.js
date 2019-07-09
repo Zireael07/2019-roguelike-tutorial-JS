@@ -1,4 +1,4 @@
-import { Entity, Creature } from "./entity.js"
+import { Entity, Creature, AI } from "./entity.js"
 
 import { GameMap } from "./gamemap.js"
 
@@ -6,6 +6,15 @@ import { createFOV } from "./fov.js";
 import { tintImage } from "./tint_image.js";
 
 var player = new Entity(1, 1, "Player");
+player.creature = new Creature(player, 20, 40, 30);
+
+//simple enum for JS
+//https://stackoverflow.com/a/44447975
+const GameStates = Object.freeze({
+    PLAYER_TURN:   Symbol(0),
+    ENEMY_TURN:  Symbol(1),
+});
+
 
 var Game = {
     canvas: null,
@@ -16,6 +25,7 @@ var Game = {
     seen: null,
     rng: null,
     entities: [],
+    game_state: null,
 
     newGame: function(cnv) {
         this.canvas = cnv;
@@ -24,6 +34,7 @@ var Game = {
         this.rng = aleaPRNG();
         this.visible = new Set();
         this.seen = new Set();
+        this.game_state = GameStates.PLAYER_TURN;
     },
     setupFOV: function() {
         this.refreshFOV = createFOV(
@@ -74,7 +85,8 @@ var Game = {
 
             //console.log(x,y);
             let ent = new Entity(x,y, "kobold");
-            ent.creature = new Creature();
+            ent.creature = new Creature(ent, 5, 20,30);
+            ent.ai = new AI(ent);
             this.entities.push(ent);
         }
 
@@ -171,28 +183,32 @@ function processKeyDown(key){
 // ES 6 feature - export!
 // they are also used by key input
 export function moveUp() {
-    if (Game.player.move(0, -1, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(0, -1, Game._map, Game.entities)){
         Game.refreshVisibility();
     }
+    Game.game_state = GameStates.ENEMY_TURN;
 
 }
 
 export function moveDown() {
-    if (Game.player.move(0, 1, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(0, 1, Game._map, Game.entities)){
         Game.refreshVisibility();
     }
+    Game.game_state = GameStates.ENEMY_TURN;
 }
 
 export function moveLeft() {
-    if (Game.player.move(-1, 0, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, 0, Game._map, Game.entities)){
         Game.refreshVisibility();
     }
+    Game.game_state = GameStates.ENEMY_TURN;
 }
 
 export function moveRight() {
-    if (Game.player.move(1, 0, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, 0, Game._map, Game.entities)){
         Game.refreshVisibility();
     }
+    Game.game_state = GameStates.ENEMY_TURN;
 }
 
 function setup(canvas) {
@@ -206,11 +222,23 @@ function setup(canvas) {
 
     //what it says on the tin
     function mainLoop() {
-        //test
         Game.clearGame();
         Game.renderMap(Game._map);
         Game.renderPlayer();
         Game.renderEntities(Game.entities);
+        // AI turn
+        if (Game.game_state == GameStates.ENEMY_TURN){
+            //for (entity in game.entities:
+            for (let index = 0; index < Game.entities.length; index++) {
+                const entity = Game.entities[index];
+                if (entity.ai != null){
+                    //console.log("The " + entity.creature.name + " ponders the meaning of its existence.");
+                    entity.ai.take_turn(Game.player, Game._map, Game.visible, Game.entities);
+                }
+            }
+            Game.game_state = GameStates.PLAYER_TURN;
+        }
+
         requestAnimationFrame(mainLoop);
     }
     
