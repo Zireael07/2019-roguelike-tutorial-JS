@@ -1,11 +1,11 @@
-import { Entity } from "./entity.js"
+import { Entity, Creature } from "./entity.js"
 
 import { GameMap } from "./gamemap.js"
 
 import { createFOV } from "./fov.js";
 import { tintImage } from "./tint_image.js";
 
-var player = new Entity(1, 1);
+var player = new Entity(1, 1, "Player");
 
 var Game = {
     canvas: null,
@@ -69,11 +69,13 @@ var Game = {
         // taking a shortcut here: this map is rectangular so we can just place in rectangle
         for (let i = 0; i < num; i++){
             // Choose a random location in the map
-            let x = this.rng.range(1, (map._height - 2))
-            let y = this.rng.range(1, (map._width - 2))
+            let x = this.rng.range(1, (map._height - 5))
+            let y = this.rng.range(1, (map._width - 5))
 
             //console.log(x,y);
-            this.entities.push(new Entity(x,y));
+            let ent = new Entity(x,y, "kobold");
+            ent.creature = new Creature();
+            this.entities.push(ent);
         }
 
     },
@@ -169,26 +171,26 @@ function processKeyDown(key){
 // ES 6 feature - export!
 // they are also used by key input
 export function moveUp() {
-    if (Game.player.move(0, -1, Game._map)){
+    if (Game.player.move(0, -1, Game._map, Game.entities)){
         Game.refreshVisibility();
     }
 
 }
 
 export function moveDown() {
-    if (Game.player.move(0, 1, Game._map)){
+    if (Game.player.move(0, 1, Game._map, Game.entities)){
         Game.refreshVisibility();
     }
 }
 
 export function moveLeft() {
-    if (Game.player.move(-1, 0, Game._map)){
+    if (Game.player.move(-1, 0, Game._map, Game.entities)){
         Game.refreshVisibility();
     }
 }
 
 export function moveRight() {
-    if (Game.player.move(1, 0, Game._map)){
+    if (Game.player.move(1, 0, Game._map, Game.entities)){
         Game.refreshVisibility();
     }
 }
