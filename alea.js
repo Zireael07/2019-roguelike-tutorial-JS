@@ -113,6 +113,24 @@ function aleaPRNG() {
             }
         };
 
+        //Based on https://github.com/skeeto/rng-js/blob/master/rng.js
+        /* Public: rolls dice */
+        random.roller = function(expr) {
+            var parts = expr.split(/(\d+)?d(\d+)([+-]\d+)?/).slice(1);
+            var dice = parseFloat(parts[0]) || 1;
+            var sides = parseFloat(parts[1]);
+            var mod = parseFloat(parts[2]) || 0;
+            console.log("dice: " + dice + " d " + sides + " sides");
+            var total = mod;
+            for (var i = 0; i < dice; i++) {
+                var num = this.range(1, sides);
+                //console.log("num:" + num);
+                total += num;
+            };
+            console.log("Roller returns: " + total);
+            return total;
+        };
+
         /* public: initialize generator to first specified seed values */
         random.restart = function() {
             _initState( initialArguments );

@@ -17,26 +17,27 @@ class Entity{
             }
             return null;
     };
-    move(dx,dy, map, entities){
+    move(dx,dy, Game){
         var tx = this._x + dx
         var ty = this._y + dy
         
         if (tx < 0 || ty < 0){
             return false;
         }
-        if (tx > map._width || ty > map._height){
+        if (tx > Game._map._width || ty > Game._map._height){
             return false;
         }
     
         //is it a wall?
-        if (map._tiles[tx][ty] == 0){
+        if (Game._map._tiles[tx][ty] == 0){
             return false;
         }
 
         //check for creatures
-        var target = this.get_creatures_at(entities, tx, ty);
+        var target = this.get_creatures_at(Game.entities, tx, ty);
         if (target != null){
-            console.log("You kick " + target.name + " in the shins!");
+            //console.log("You kick " + target.name + " in the shins!");
+            this.creature.attack(target, Game);
             //no need to refresh FOV
             return false;
         }
@@ -48,14 +49,14 @@ class Entity{
 }
 
 class Creature{
-    constructor(owner, hp, def, attack){
+    constructor(owner, hp, def, att){
         this.owner = owner;
         this.hp = hp;
         this.max_hp = hp;
         this.defense = def;
-        this.attack = attack;
+        this.att = att;
     }
-    move_towards(tx, ty, game_map, entities){
+    move_towards(tx, ty, Game){
         var dx = tx - this.owner._x
         var dy = ty - this.owner._y
         //var distance = math.sqrt(dx ** 2 + dy ** 2)
@@ -65,27 +66,43 @@ class Creature{
         dy = Math.round(dy / distance);
         //console.log ("dx " + dx + " dy: " + dy);
 
-        if ((!game_map.isBlocked(this.owner._x + dx, this.owner._y + dy)) || (get_creatures_at(entities, this.owner._x + dx, this.owner._y + dy))){
-            console.log("We can move to " + (this.owner._x + dx) + " " + (this.owner._y + dy));
-            return this.owner.move(dx, dy, game_map, entities);
+        if ((!Game._map.isBlocked(this.owner._x + dx, this.owner._y + dy)) || (get_creatures_at(Game.entities, this.owner._x + dx, this.owner._y + dy))){
+            //console.log("We can move to " + (this.owner._x + dx) + " " + (this.owner._y + dy));
+            return this.owner.move(dx, dy, Game);
         }
-    }
+    };
+    // basic combat system
+    take_damage(amount){
+        this.hp -= amount;
+    };
+    attack(target, Game){
+        var damage = Game.rng.roller("1d6");
+
+        if (damage > 0){
+            target.creature.take_damage(damage);
+            console.log(this.owner.name + " attacks " + target.name + " for " + damage + " points of damage!");
+        }
+        else{
+            console.log(this.owner.name + " attacks " + target.name + " but does no damage");
+        }
+    };
 }
 
 class AI{
     constructor(owner){
         this.owner = owner;
     }
-    take_turn(target, game_map, visible, entities){ 
-        console.log("The " + this.owner.name + " wonders when it will get to move");
+    take_turn(target, Game){ 
+        //console.log("The " + this.owner.name + " wonders when it will get to move");
         var monster = this.owner
         // assume if we can see it, it can see us too
-        if (visible.has(`${monster._x},${monster._y}`)){  
+        if (Game.isVisible(monster._x, monster._y)){  
             if (distance_to(monster._x, monster._y, target._x, target._y) >= 2){
-                monster.creature.move_towards(target._x, target._y, game_map, entities);
+                monster.creature.move_towards(target._x, target._y, Game);
             }
-            else if (target.creature.hp > 0){
-                console.log(this.owner.name + " insults you!");
+            else{ //if (target.creature.hp > 0){
+                //console.log(this.owner.name + " insults you!");
+                monster.creature.attack(target, Game);
             }
         }
     };

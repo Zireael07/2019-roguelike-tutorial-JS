@@ -75,7 +75,7 @@ var Game = {
     },
     placeEntities: function(map, max) {
         // Get a random number of monsters
-        var num = this.rng.range(0, max);
+        var num = this.rng.range(1, max);
 
         // taking a shortcut here: this map is rectangular so we can just place in rectangle
         for (let i = 0; i < num; i++){
@@ -155,7 +155,7 @@ var Game = {
     },
     renderEntities: function(entities){
         for (let i = 0; i < entities.length; i++){
-            if (Game.isSeen(entities[i]._x, entities[i]._y)){
+            if (Game.isVisible(entities[i]._x, entities[i]._y)){
                 let iso = this.isoPos(entities[i]._x, entities[i]._y);
                 // entities need a slight offset to be placed more or less centrally
                 this.renderGfxTile(resources.get("gfx/kobold.png"), iso[0]+8, iso[1]+8);
@@ -193,7 +193,7 @@ function processKeyDown(key){
 // ES 6 feature - export!
 // they are also used by key input
 export function moveUp() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(0, -1, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(0, -1, Game)){
         Game.refreshVisibility();
     }
     Game.game_state = GameStates.ENEMY_TURN;
@@ -201,28 +201,28 @@ export function moveUp() {
 }
 
 export function moveDown() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(0, 1, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(0, 1, Game)){
         Game.refreshVisibility();
     }
     Game.game_state = GameStates.ENEMY_TURN;
 }
 
 export function moveLeft() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, 0, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, 0, Game)){
         Game.refreshVisibility();
     }
     Game.game_state = GameStates.ENEMY_TURN;
 }
 
 export function moveRight() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, 0, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, 0, Game)){
         Game.refreshVisibility();
     }
     Game.game_state = GameStates.ENEMY_TURN;
 }
 
 export function moveLeftUp() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, -1, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, -1, Game)){
         Game.refreshVisibility();
     }
     Game.game_state = GameStates.ENEMY_TURN;
@@ -230,7 +230,7 @@ export function moveLeftUp() {
 }
 
 export function moveRightUp() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, -1, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, -1, Game)){
         Game.refreshVisibility();
     }
     Game.game_state = GameStates.ENEMY_TURN;
@@ -238,7 +238,7 @@ export function moveRightUp() {
 }
 
 export function moveLeftDown() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, -1, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, -1, Game)){
         Game.refreshVisibility();
     }
     Game.game_state = GameStates.ENEMY_TURN;
@@ -246,7 +246,7 @@ export function moveLeftDown() {
 }
 
 export function moveRightDown() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, -1, Game._map, Game.entities)){
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, -1, Game)){
         Game.refreshVisibility();
     }
     Game.game_state = GameStates.ENEMY_TURN;
@@ -275,7 +275,7 @@ function setup(canvas) {
                 const entity = Game.entities[index];
                 if (entity.ai != null){
                     //console.log("The " + entity.creature.name + " ponders the meaning of its existence.");
-                    entity.ai.take_turn(Game.player, Game._map, Game.visible, Game.entities);
+                    entity.ai.take_turn(Game.player, Game);
                 }
             }
             Game.game_state = GameStates.PLAYER_TURN;
