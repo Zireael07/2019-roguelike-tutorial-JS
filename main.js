@@ -175,6 +175,16 @@ function processKeyDown(key){
       case 39: moveRight();  break;   //right
       case 38: moveUp(); break;     //up
       case 40: moveDown();  break;    //down
+      // vim
+      case 72: moveLeft(); break; // h
+      case 76: moveRight(); break; // l
+      case 74: moveDown(); break; // j
+      case 75: moveUp(); break; // k
+      // diagonals
+      case 89: moveLeftUp(); break; // y
+      case 85: moveRightUp(); break; // u
+      case 66: moveLeftDown(); break; // b
+      case 78: moveRightDown(); break; // n
       default: console.log(key);
     }
 }
@@ -209,6 +219,38 @@ export function moveRight() {
         Game.refreshVisibility();
     }
     Game.game_state = GameStates.ENEMY_TURN;
+}
+
+export function moveLeftUp() {
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, -1, Game._map, Game.entities)){
+        Game.refreshVisibility();
+    }
+    Game.game_state = GameStates.ENEMY_TURN;
+
+}
+
+export function moveRightUp() {
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, -1, Game._map, Game.entities)){
+        Game.refreshVisibility();
+    }
+    Game.game_state = GameStates.ENEMY_TURN;
+
+}
+
+export function moveLeftDown() {
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, -1, Game._map, Game.entities)){
+        Game.refreshVisibility();
+    }
+    Game.game_state = GameStates.ENEMY_TURN;
+
+}
+
+export function moveRightDown() {
+    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, -1, Game._map, Game.entities)){
+        Game.refreshVisibility();
+    }
+    Game.game_state = GameStates.ENEMY_TURN;
+
 }
 
 function setup(canvas) {
