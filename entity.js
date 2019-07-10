@@ -97,10 +97,10 @@ class Creature{
 
         if (damage > 0){
             target.creature.take_damage(damage);
-            console.log(this.owner.name + " attacks " + target.name + " for " + damage + " points of damage!");
+            Game.gameMessage(this.owner.name + " attacks " + target.name + " for " + damage + " points of damage!", 'rgb(255,0,0)');
         }
         else{
-            console.log(this.owner.name + " attacks " + target.name + " but does no damage");
+            Game.gameMessage(this.owner.name + " attacks " + target.name + " but does no damage", 'rgb(255,255,255)');
         }
     };
 }

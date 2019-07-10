@@ -26,6 +26,7 @@ var Game = {
     rng: null,
     entities: [],
     game_state: null,
+    messages: [],
 
     newGame: function(cnv) {
         this.canvas = cnv;
@@ -103,6 +104,9 @@ var Game = {
         this.visible.add(id);
         this.seen.add(id);
     },
+    gameMessage: function(text, clr){
+        this.messages.push([text, clr]);
+    },
 
     //rendering functions from here down
     clearGame: function() {
@@ -164,6 +168,27 @@ var Game = {
     },
     renderGfxTile: function(img, x, y) {
         this.context.drawImage(img, x, y);
+    },
+    drawMessages: function(){
+        // what do we draw?
+        var drawn = null;
+        if (this.messages.length < 5){
+            drawn = this.messages
+        }
+        else{
+            //slicing from end
+            drawn = this.messages.slice(-5);
+        }
+
+        // draw
+        var y = 0;
+        for (let index = 0; index < drawn.length; index++) {
+            const el = drawn[index];
+            this.context.font = "12px Arial";
+            this.context.fillStyle = el[1]; //'rgb(255, 255, 255)';
+            this.context.fillText(el[0], 5.0, this.canvas.height-50+y);
+            y += 10;
+        }
     }
 }
 
@@ -268,6 +293,7 @@ function setup(canvas) {
         Game.renderMap(Game._map);
         Game.renderPlayer();
         Game.renderEntities(Game.entities);
+        Game.drawMessages();
         // AI turn
         if (Game.game_state == GameStates.ENEMY_TURN){
             //for (entity in game.entities:
