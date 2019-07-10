@@ -1,3 +1,5 @@
+import { findPath } from "./astar.js"
+
 class Entity{
     constructor(x,y, name){
         this._x = x;
@@ -71,6 +73,21 @@ class Creature{
             return this.owner.move(dx, dy, Game);
         }
     };
+    move_astar(tx, ty, Game){
+        console.log("Calling astar...");
+        var astar = findPath(Game._map, [this.owner._x, this.owner._y], [tx, ty]);
+
+        if (!astar.length < 1){
+            // get the next point along the path (because #0 is our current position)
+            // it was already checked for walkability by astar so we don't need to do it again
+            // destructuring assignment
+            [this.owner._x, this.owner._y] = astar[1]
+        }
+        else{
+            // backup in case no path found
+            this.move_towards(tx, ty, Game);
+        }
+    };
     // basic combat system
     take_damage(amount){
         this.hp -= amount;
@@ -98,7 +115,8 @@ class AI{
         // assume if we can see it, it can see us too
         if (Game.isVisible(monster._x, monster._y)){  
             if (distance_to(monster._x, monster._y, target._x, target._y) >= 2){
-                monster.creature.move_towards(target._x, target._y, Game);
+                //monster.creature.move_towards(target._x, target._y, Game);
+                monster.creature.move_astar(target._x, target._y, Game);
             }
             else{ //if (target.creature.hp > 0){
                 //console.log(this.owner.name + " insults you!");
