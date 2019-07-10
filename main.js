@@ -5,8 +5,22 @@ import { GameMap } from "./gamemap.js"
 import { createFOV } from "./fov.js";
 import { tintImage } from "./tint_image.js";
 
+//death
+function death_player(Game){
+    Game.gameMessage(this.owner.name + " is DEAD!", 'rgb(255,0,0)');
+}
+function death_monster(Game){
+    Game.gameMessage(this.owner.name + " is dead!", 'rgb(127,127,127)');
+    //delete from game entities
+    var index = Game.entities.indexOf( this.owner );
+    if (index !== -1) {
+        Game.entities.splice( index, 1 );
+    }
+}
+
+
 var player = new Entity(1, 1, "Player");
-player.creature = new Creature(player, 20, 40, 30);
+player.creature = new Creature(player, 20, 40, 30, death_player);
 
 //simple enum for JS
 //https://stackoverflow.com/a/44447975
@@ -86,7 +100,7 @@ var Game = {
 
             //console.log(x,y);
             let ent = new Entity(x,y, "kobold");
-            ent.creature = new Creature(ent, 5, 20,30);
+            ent.creature = new Creature(ent, 5, 20,30, death_monster);
             ent.ai = new AI(ent);
             this.entities.push(ent);
         }

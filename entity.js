@@ -51,12 +51,13 @@ class Entity{
 }
 
 class Creature{
-    constructor(owner, hp, def, att){
+    constructor(owner, hp, def, att, die_f){
         this.owner = owner;
         this.hp = hp;
         this.max_hp = hp;
         this.defense = def;
         this.att = att;
+        this.die_function = die_f;
     }
     move_towards(tx, ty, Game){
         var dx = tx - this.owner._x
@@ -89,15 +90,24 @@ class Creature{
         }
     };
     // basic combat system
-    take_damage(amount){
+    take_damage(amount, Game){
         this.hp -= amount;
+        // kill!
+        if (this.hp <= 0){
+            this.die_function(Game);
+        }
     };
     attack(target, Game){
         var damage = Game.rng.roller("1d6");
 
+        var color = 'rgb(127,127,127)'
+        if (target == Game.player){
+            color = 'rgb(255,0,0)'
+        }
+
         if (damage > 0){
-            target.creature.take_damage(damage);
-            Game.gameMessage(this.owner.name + " attacks " + target.name + " for " + damage + " points of damage!", 'rgb(255,0,0)');
+            Game.gameMessage(this.owner.name + " attacks " + target.name + " for " + damage + " points of damage!", color);
+            target.creature.take_damage(damage, Game);
         }
         else{
             Game.gameMessage(this.owner.name + " attacks " + target.name + " but does no damage", 'rgb(255,255,255)');
