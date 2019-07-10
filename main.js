@@ -8,6 +8,8 @@ import { tintImage } from "./tint_image.js";
 //death
 function death_player(Game){
     Game.gameMessage(this.owner.name + " is DEAD!", 'rgb(255,0,0)');
+    //change to a special state - prevents moving, among other things
+    Game.game_state = GameStates.PLAYER_DEAD;
 }
 function death_monster(Game){
     Game.gameMessage(this.owner.name + " is dead!", 'rgb(127,127,127)');
@@ -27,6 +29,7 @@ player.creature = new Creature(player, 20, 40, 30, death_player);
 const GameStates = Object.freeze({
     PLAYER_TURN:   Symbol(0),
     ENEMY_TURN:  Symbol(1),
+    PLAYER_DEAD: Symbol(2),
 });
 
 
@@ -232,64 +235,75 @@ function processKeyDown(key){
 // ES 6 feature - export!
 // they are also used by key input
 export function moveUp() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(0, -1, Game)){
-        Game.refreshVisibility();
+    if (Game.game_state == GameStates.PLAYER_TURN){
+        if (Game.player.move(0, -1, Game)){
+            Game.refreshVisibility();
+        }
+        Game.game_state = GameStates.ENEMY_TURN;
     }
-    Game.game_state = GameStates.ENEMY_TURN;
-
 }
 
 export function moveDown() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(0, 1, Game)){
-        Game.refreshVisibility();
+    if (Game.game_state == GameStates.PLAYER_TURN){
+        if (Game.player.move(0, 1, Game)){
+            Game.refreshVisibility();
+        }
+        Game.game_state = GameStates.ENEMY_TURN;
     }
-    Game.game_state = GameStates.ENEMY_TURN;
 }
 
 export function moveLeft() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, 0, Game)){
-        Game.refreshVisibility();
+    if (Game.game_state == GameStates.PLAYER_TURN){
+        if (Game.player.move(-1, 0, Game)){
+            Game.refreshVisibility();
+        }
+        Game.game_state = GameStates.ENEMY_TURN;
     }
-    Game.game_state = GameStates.ENEMY_TURN;
 }
 
 export function moveRight() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, 0, Game)){
-        Game.refreshVisibility();
+    if (Game.game_state == GameStates.PLAYER_TURN){
+        if (Game.player.move(1, 0, Game)){
+            Game.refreshVisibility();
+        }
+        Game.game_state = GameStates.ENEMY_TURN;    
     }
-    Game.game_state = GameStates.ENEMY_TURN;
 }
 
 export function moveLeftUp() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, -1, Game)){
-        Game.refreshVisibility();
+    if (Game.game_state == GameStates.PLAYER_TURN){
+        if (Game.player.move(-1, -1, Game)){
+            Game.refreshVisibility();
+        }
+        Game.game_state = GameStates.ENEMY_TURN;    
     }
-    Game.game_state = GameStates.ENEMY_TURN;
-
 }
 
 export function moveRightUp() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, -1, Game)){
-        Game.refreshVisibility();
+    if (Game.game_state == GameStates.PLAYER_TURN){
+        if(Game.player.move(1, -1, Game)){
+            Game.refreshVisibility();
+        }
+        Game.game_state = GameStates.ENEMY_TURN;
     }
-    Game.game_state = GameStates.ENEMY_TURN;
-
 }
 
 export function moveLeftDown() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(-1, -1, Game)){
-        Game.refreshVisibility();
+    if (Game.game_state == GameStates.PLAYER_TURN){
+        if(Game.player.move(-1, -1, Game)){
+            Game.refreshVisibility();
+        }
+        Game.game_state = GameStates.ENEMY_TURN;
     }
-    Game.game_state = GameStates.ENEMY_TURN;
-
 }
 
 export function moveRightDown() {
-    if (Game.game_state == GameStates.PLAYER_TURN && Game.player.move(1, -1, Game)){
+    if (Game.game_state == GameStates.PLAYER_TURN){
+        if (Game.player.move(1, -1, Game)){
         Game.refreshVisibility();
+        }
+        Game.game_state = GameStates.ENEMY_TURN;
     }
-    Game.game_state = GameStates.ENEMY_TURN;
-
 }
 
 function setup(canvas) {
@@ -311,14 +325,25 @@ function setup(canvas) {
         // AI turn
         if (Game.game_state == GameStates.ENEMY_TURN){
             //for (entity in game.entities:
+            //label for easier breaking
+            ailoop:
             for (let index = 0; index < Game.entities.length; index++) {
                 const entity = Game.entities[index];
                 if (entity.ai != null){
                     //console.log("The " + entity.creature.name + " ponders the meaning of its existence.");
                     entity.ai.take_turn(Game.player, Game);
+
+                    //break if player's dead!
+                    if (Game.player.creature.dead){
+                        //console.log("Break loop")
+                        break ailoop;
+                    }
                 }
+
             }
-            Game.game_state = GameStates.PLAYER_TURN;
+            if (Game.game_state != GameStates.PLAYER_DEAD){
+                Game.game_state = GameStates.PLAYER_TURN;
+            }
         }
 
         requestAnimationFrame(mainLoop);

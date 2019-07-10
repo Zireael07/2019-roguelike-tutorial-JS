@@ -58,6 +58,7 @@ class Creature{
         this.defense = def;
         this.att = att;
         this.die_function = die_f;
+        this.dead = false;
     }
     move_towards(tx, ty, Game){
         var dx = tx - this.owner._x
@@ -95,9 +96,16 @@ class Creature{
         // kill!
         if (this.hp <= 0){
             this.die_function(Game);
+            this.dead = true;
         }
     };
     attack(target, Game){
+        //paranoia
+        if (target.creature.dead){
+            //console.log("Target dead...")
+            return;
+        }
+
         var damage = Game.rng.roller("1d6");
 
         var color = 'rgb(127,127,127)'
