@@ -1,0 +1,12 @@
+.tile div {
+	display: inline-block;
+	position: relative;
+	/*overflow: hidden;*/
+}
+.img {
+	/* simplest darkening possible */
+	-webkit-filter: brightness(0.75);	
+	/* for grayscale, needs to be sepia'd first */
+	/* this only tints the colored parts! */
+	/*-webkit-filter: sepia(100%) hue-rotate(100deg);*/      	
+}
