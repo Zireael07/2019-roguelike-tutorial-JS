@@ -369,20 +369,20 @@ var Game = {
 // key is the key code
 function processKeyDown(key){
     switch (key) {
-      case 37: moveLeft(); break;  //left
-      case 39: moveRight();  break;   //right
-      case 38: moveUp(); break;     //up
-      case 40: moveDown();  break;    //down
+      case 37: movePlayer(-1, 0); break;  //left
+      case 39: movePlayer(1, 0);  break;   //right
+      case 38: movePlayer(0, -1); break;     //up
+      case 40: movePlayer(0, 1);  break;    //down
       // vim
-      case 72: moveLeft(); break; // h
-      case 76: moveRight(); break; // l
-      case 74: moveDown(); break; // j
-      case 75: moveUp(); break; // k
+      case 72: movePlayer(-1, -0); break; // h
+      case 76: movePlayer(1, 0); break; // l
+      case 74: movePlayer(0, 1); break; // j
+      case 75: movePlayer(0, -1); break; // k
       // diagonals
-      case 89: moveLeftUp(); break; // y
-      case 85: moveRightUp(); break; // u
-      case 66: moveLeftDown(); break; // b
-      case 78: moveRightDown(); break; // n
+      case 89: movePlayer(-1, -1); break; // y
+      case 85: movePlayer(1, -1); break; // u
+      case 66: movePlayer(-1, 1); break; // b
+      case 78: movePlayer(1, 1); break; // n
       default: console.log(key);
     }
 }
@@ -390,9 +390,9 @@ function processKeyDown(key){
 // stubs called by jQuery onclick()
 // ES 6 feature - export!
 // they are also used by key input
-export function moveUp() {
+export function movePlayer(x, y) {
     if (Game.game_state == GameStates.PLAYER_TURN){
-        if (Game.player.move(0, -1, Game)){
+        if (Game.player.move(x, y, Game)){
             Game.refreshVisibility();
 	    //for DOM
 	    Game.onPlayerMoved();
@@ -403,96 +403,6 @@ export function moveUp() {
 	
     }
 }
-
-export function moveDown() {
-    if (Game.game_state == GameStates.PLAYER_TURN){
-        if (Game.player.move(0, 1, Game)){
-            Game.refreshVisibility();
-	    //for DOM
-	    Game.onPlayerMoved();
-        }
-        Game.game_state = GameStates.ENEMY_TURN;
-	//for DOM
-	Game.enemyActions();
-    }
-}
-
-export function moveLeft() {
-    if (Game.game_state == GameStates.PLAYER_TURN){
-        if (Game.player.move(-1, 0, Game)){
-            Game.refreshVisibility();
-	    //for DOM
-	    Game.onPlayerMoved();
-        }
-        Game.game_state = GameStates.ENEMY_TURN;
-	//for DOM
-	Game.enemyActions();
-    }
-}
-
-export function moveRight() {
-    if (Game.game_state == GameStates.PLAYER_TURN){
-        if (Game.player.move(1, 0, Game)){
-            Game.refreshVisibility();
-	    //for DOM
-	    Game.onPlayerMoved();
-        }
-        Game.game_state = GameStates.ENEMY_TURN;
-	//for DOM
-	Game.enemyActions();
-    }
-}
-
-export function moveLeftUp() {
-    if (Game.game_state == GameStates.PLAYER_TURN){
-        if (Game.player.move(-1, -1, Game)){
-            Game.refreshVisibility();
-        }
-        Game.game_state = GameStates.ENEMY_TURN;
-	//for DOM
-	Game.enemyActions();
-    }
-}
-
-export function moveRightUp() {
-    if (Game.game_state == GameStates.PLAYER_TURN){
-        if(Game.player.move(1, -1, Game)){
-            Game.refreshVisibility();
-	    //for DOM
-	    Game.onPlayerMoved();
-        }
-        Game.game_state = GameStates.ENEMY_TURN;
-	//for DOM
-	Game.enemyActions();
-    }
-}
-
-export function moveLeftDown() {
-    if (Game.game_state == GameStates.PLAYER_TURN){
-        if(Game.player.move(-1, -1, Game)){
-            Game.refreshVisibility();
-	    //for DOM
-	    Game.onPlayerMoved();
-        }
-        Game.game_state = GameStates.ENEMY_TURN;
-	//for DOM
-	Game.enemyActions();
-    }
-}
-
-export function moveRightDown() {
-    if (Game.game_state == GameStates.PLAYER_TURN){
-        if (Game.player.move(1, -1, Game)){
-            Game.refreshVisibility();
-	    //for DOM
-	    Game.onPlayerMoved();
-        }
-        Game.game_state = GameStates.ENEMY_TURN;
-	//for DOM
-	Game.enemyActions();
-    }
-}
-
 
 function setup(canvas) {
     console.log("setup...");
