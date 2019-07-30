@@ -1,41 +1,41 @@
 //ES 6 feature - import
-import { moveUp, moveDown, moveLeft, moveRight, moveLeftUp, moveLeftDown, moveRightUp, moveRightDown } from "./main.js"
+import { movePlayer } from "./main.js"
 
 //crucial
 $( document ).ready(function() {
     $(".key_arrow1").click(function(e) {
         //console.log("Clicked a button 1");
-        moveLeftUp()
+        movePlayer(-1,-1);
     });
     $(".key_arrow2").click(function(e) {
         //console.log("Clicked a button 2");
-        moveUp()
+        movePlayer(0, -1);
     });
     $(".key_arrow3").click(function(e) {
         //console.log("Clicked a button 3");
-        moveRightUp()
+        movePlayer(1,-1);
     });
     $(".key_arrow4").click(function(e) {
         //console.log("Clicked a button 4");
-        moveLeft()
+        movePlayer(-1, 0);
     });
     $(".key_arrow5").click(function(e) {
         console.log("Clicked a button 5");
     });
     $(".key_arrow6").click(function(e) {
         //console.log("Clicked a button 6");
-        moveRight()
+        movePlayer(1,0);
     });
     $(".key_arrow7").click(function(e) {
         //console.log("Clicked a button 7");
-        moveLeftDown()
+        movePlayer(-1,1);
     });
     $(".key_arrow8").click(function(e) {
         //console.log("Clicked a button 8");
-        moveDown()
+        movePlayer(0,1);
     });
     $(".key_arrow9").click(function(e) {
         //console.log("Clicked a button 9");
-        moveRightDown()
+        movePlayer(1,1);
     });
  });
