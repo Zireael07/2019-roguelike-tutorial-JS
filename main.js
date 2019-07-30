@@ -60,8 +60,8 @@ var Game = {
     setupDOMMap: function() {
 	console.log("Setup DOM for map...");
         var dom = document.getElementById("map");
-        dom.style.width = "600px";
-        dom.style.height = "800px";
+        dom.style.width = "800px";
+        dom.style.height = "600px";
 
 	//var count = this._map._width * this._map._height;
 	//for (var i=0;i<count;i++) {
@@ -192,6 +192,7 @@ var Game = {
         Game.renderMap(Game._map);
         Game.renderPlayer();
 	Game.renderEntities(Game.entities);
+	Game.drawMessagesDOM();
     },
     //html dom functions
     clearDOM: function(){
@@ -254,6 +255,36 @@ var Game = {
 	if (dom.childNodes[i].childNodes.length < 1){
 	   dom.childNodes[i].appendChild(img);
 	}
+    },
+    drawMessagesDOM: function(){
+        // what do we draw?
+        this.drawn = null;
+        if (this.messages.length < 5){
+            this.drawn = this.messages
+        }
+        else{
+            //slicing from end
+            this.drawn = this.messages.slice(-5);
+        }
+
+        // draw
+        var y = 0;
+        for (let index = 0; index < this.drawn.length; index++) {
+            const el = this.drawn[index];
+	    var dom = document.getElementById("map");
+	    var p = document.createElement("p");
+	    p.style = "color: " + el[1] + ";";
+	    p.style.position = "absolute";
+	    p.style.top = 600-60+y + "px";
+	    p.style.left = "5px";
+	    p.innerHTML = el[0];
+	    dom.appendChild(p);
+
+            //this.context.font = "12px Arial";
+            //this.context.fillStyle = el[1]; //'rgb(255, 255, 255)';
+            //this.context.fillText(el[0], 5.0, this.canvas.height-50+y);
+            y += 12;
+        }
     },
 
     //rendering functions from here down
