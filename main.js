@@ -44,15 +44,39 @@ var Game = {
     entities: [],
     game_state: null,
     messages: [],
+    drawn: [],
+    // to avoid losing track of it
+    iso: null,
 
     newGame: function(cnv) {
-        this.canvas = cnv;
-        this.context = cnv.getContext("2d");
+        //this.canvas = cnv;
+        //this.context = cnv.getContext("2d");
         this.player = player;
         this.rng = aleaPRNG();
         this.visible = new Set();
         this.seen = new Set();
         this.game_state = GameStates.PLAYER_TURN;
+    },
+    setupDOMMap: function() {
+	console.log("Setup DOM for map...");
+        var dom = document.getElementById("map");
+        dom.style.width = "600px";
+        dom.style.height = "800px";
+
+	//var count = this._map._width * this._map._height;
+	//for (var i=0;i<count;i++) {
+	for (let x =0; x < this._map._width; x++){
+            for (let y=0; y < this._map._height; y++){
+	    	var div = document.createElement("div");
+	    	div.style.width = "64px";
+	    	div.style.height = "32px";
+		div.style.position = "absolute";
+	    	dom.appendChild(div);
+		this.iso = this.isoPos(x,y);
+		div.style.left = this.iso[0]+"px";
+		div.style.top = this.iso[1]+"px";
+	    }
+	}
     },
     setupFOV: function() {
         this.refreshFOV = createFOV(
@@ -124,11 +148,29 @@ var Game = {
     gameMessage: function(text, clr){
         this.messages.push([text, clr]);
     },
+    onPlayerMoved: function(){
+	this.clearDOM();
+	this.draws();
+    },
+    enemyActions: function() {    
+	ailoop:
+            for (let index = 0; index < Game.entities.length; index++) {
+                const entity = Game.entities[index];
+                if (entity.ai != null){
+                    //console.log("The " + entity.creature.name + " ponders the meaning of its existence.");
+                    entity.ai.take_turn(Game.player, Game);
 
-    //rendering functions from here down
-    clearGame: function() {
-        this.context.fillStyle = 'rgb(0,0,0)';
-        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                    //break if player's dead!
+                    if (Game.player.creature.dead){
+                        //console.log("Break loop")
+                        break ailoop;
+                    }
+                }
+
+            }
+            if (Game.game_state != GameStates.PLAYER_DEAD){
+                Game.game_state = GameStates.PLAYER_TURN;
+            }
     },
     isoPos: function(x,y) {
         // those values work for Gervais isometric tiles
@@ -140,6 +182,86 @@ var Game = {
   
         return [tile_x,tile_y];
     },
+    tileToIndex: function(x,y) {
+	let y_in = y*this._map._width;
+	let ind = y_in + x;
+	//console.log("Pos: " + x + ", " + y + "= " + ind);
+	return ind;
+    },
+    draws: function() {
+        Game.renderMap(Game._map);
+        Game.renderPlayer();
+	Game.renderEntities(Game.entities);
+    },
+    //html dom functions
+    clearDOM: function(){
+	var dom = document.getElementById("map");
+	var children = dom.childNodes;
+	//ES 6
+	for(var child of children){
+    	    //console.log(children[child]);
+	    var ch = child.childNodes;
+	    // remove all imgs
+	    while(child.firstChild) {
+    		child.removeChild(child.firstChild);
+	    }
+	}
+    },
+    renderGfxDOM: function(src, x,y, offset){
+	var dom = document.getElementById("map");
+	var img = document.createElement("img");
+	img.src = src;
+	//img.className = "img";
+	var i = this.tileToIndex(x,y);
+	img.style.position = "relative";
+	img.style.left = offset[0]+"px";
+	img.style.top = offset[1]+"px";
+	dom.childNodes[i].appendChild(img);
+    },
+    drawMapTileDOM: function(x,y, tile) {
+	var dom = document.getElementById("map");
+	var img = document.createElement("img");
+	if (tile == 0){
+	   img.src = "gfx/wall_stone.png";
+	}
+	else{
+	   img.src = "gfx/floor_cave.png";
+	}
+	img.style.position = "absolute";
+        var i = this.tileToIndex(x,y);
+	//console.log(dom.childNodes[0].childNodes);
+	if (dom.childNodes[i].childNodes.length < 1){
+	   dom.childNodes[i].appendChild(img);
+	}
+    },
+    //intentionally aping functions using Canvas API
+    drawMapTileTintDOM: function(x,y, tile) {
+	var dom = document.getElementById("map");
+	var img = document.createElement("img");
+	
+	if (tile == 0){
+	   img.src = "gfx/wall_stone.png";
+	}
+	else{
+	   img.src = "gfx/floor_cave.png";
+	}
+        var i = this.tileToIndex(x,y);
+	img.className = "img";
+	//background style doesn't care about transparency
+        //var div = dom.childNodes[i];
+	//div.style.background = 'rgba(127, 127,127, 0.5';
+	//console.log(dom.childNodes[0].childNodes);
+	if (dom.childNodes[i].childNodes.length < 1){
+	   dom.childNodes[i].appendChild(img);
+	}
+    },
+
+    //rendering functions from here down
+    clearGame: function() {
+        this.context.fillStyle = 'rgb(0,0,0)';
+        this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    },
+    
     drawMapTile: function(x,y, tile){
         if (tile == 0){
             this.renderGfxTile(resources.get("gfx/wall_stone.png"), x, y);
@@ -150,36 +272,39 @@ var Game = {
     },
     drawMapTileTint: function(x,y, tile){
         if (tile == 0){
-            Game.context.drawImage(tintImage(resources.get("gfx/wall_stone.png"), "wall_stone_gray", 'rgb(127, 127,127)', 0.5), x, y);
+            this.context.drawImage(tintImage(resources.get("gfx/wall_stone.png"), "wall_stone_gray", 'rgb(127, 127,127)', 0.5), x, y);
         }
         else{
-            Game.context.drawImage(tintImage(resources.get("gfx/floor_cave.png"), "floor_cave_gray", 'rgb(127, 127, 127)', 0.5), x, y);
+            this.context.drawImage(tintImage(resources.get("gfx/floor_cave.png"), "floor_cave_gray", 'rgb(127, 127, 127)', 0.5), x, y);
         }
     },
     renderMap: function(map){
     for (let x =0; x < map._width; x++){
         for (let y=0; y < map._height; y++){
-            let iso = this.isoPos(x,y);
-            if (Game.isVisible(x,y)){
-                this.drawMapTile(iso[0], iso[1], map._tiles[x][y]);
+	    //not necessary for DOM
+            //this.iso = this.isoPos(x,y);
+            if (this.isVisible(x,y)){
+                this.drawMapTileDOM(x, y, map._tiles[x][y]);
             }
-            else if (Game.isSeen(x,y)){
-                this.drawMapTileTint(iso[0], iso[1], map._tiles[x][y]);
+            else if (this.isSeen(x,y)){
+                this.drawMapTileTintDOM(x, y, map._tiles[x][y]);
             }
         }
     }
     },
     renderPlayer: function(){
-        let iso = this.isoPos(this.player._x, this.player._y);
+        //this.iso = this.isoPos(this.player._x, this.player._y);
         // entities need a slight offset to be placed more or less centrally
-        this.renderGfxTile(resources.get("gfx/human_m.png"), iso[0]+8, iso[1]+8);
+	this.renderGfxDOM("gfx/human_m.png", this.player._x, this.player._y, [8,8]);
+        //this.renderGfxTile(resources.get("gfx/human_m.png"), this.iso[0]+8, this.iso[1]+8);
     },
     renderEntities: function(entities){
         for (let i = 0; i < entities.length; i++){
-            if (Game.isVisible(entities[i]._x, entities[i]._y)){
-                let iso = this.isoPos(entities[i]._x, entities[i]._y);
+            if (this.isVisible(entities[i]._x, entities[i]._y)){
+                //this.iso = this.isoPos(entities[i]._x, entities[i]._y);
                 // entities need a slight offset to be placed more or less centrally
-                this.renderGfxTile(resources.get("gfx/kobold.png"), iso[0]+8, iso[1]+8);
+		this.renderGfxDOM("gfx/kobold.png", entities[i]._x, entities[i]._y, [8,8]);
+                //this.renderGfxTile(resources.get("gfx/kobold.png"), this.iso[0]+8, this.iso[1]+8);
             }
         }
     },
@@ -188,19 +313,19 @@ var Game = {
     },
     drawMessages: function(){
         // what do we draw?
-        var drawn = null;
+        this.drawn = null;
         if (this.messages.length < 5){
-            drawn = this.messages
+            this.drawn = this.messages
         }
         else{
             //slicing from end
-            drawn = this.messages.slice(-5);
+            this.drawn = this.messages.slice(-5);
         }
 
         // draw
         var y = 0;
-        for (let index = 0; index < drawn.length; index++) {
-            const el = drawn[index];
+        for (let index = 0; index < this.drawn.length; index++) {
+            const el = this.drawn[index];
             this.context.font = "12px Arial";
             this.context.fillStyle = el[1]; //'rgb(255, 255, 255)';
             this.context.fillText(el[0], 5.0, this.canvas.height-50+y);
@@ -238,8 +363,13 @@ export function moveUp() {
     if (Game.game_state == GameStates.PLAYER_TURN){
         if (Game.player.move(0, -1, Game)){
             Game.refreshVisibility();
+	    //for DOM
+	    Game.onPlayerMoved();
         }
         Game.game_state = GameStates.ENEMY_TURN;
+	//for DOM
+	Game.enemyActions();
+	
     }
 }
 
@@ -247,8 +377,12 @@ export function moveDown() {
     if (Game.game_state == GameStates.PLAYER_TURN){
         if (Game.player.move(0, 1, Game)){
             Game.refreshVisibility();
+	    //for DOM
+	    Game.onPlayerMoved();
         }
         Game.game_state = GameStates.ENEMY_TURN;
+	//for DOM
+	Game.enemyActions();
     }
 }
 
@@ -256,8 +390,12 @@ export function moveLeft() {
     if (Game.game_state == GameStates.PLAYER_TURN){
         if (Game.player.move(-1, 0, Game)){
             Game.refreshVisibility();
+	    //for DOM
+	    Game.onPlayerMoved();
         }
         Game.game_state = GameStates.ENEMY_TURN;
+	//for DOM
+	Game.enemyActions();
     }
 }
 
@@ -265,8 +403,12 @@ export function moveRight() {
     if (Game.game_state == GameStates.PLAYER_TURN){
         if (Game.player.move(1, 0, Game)){
             Game.refreshVisibility();
+	    //for DOM
+	    Game.onPlayerMoved();
         }
-        Game.game_state = GameStates.ENEMY_TURN;    
+        Game.game_state = GameStates.ENEMY_TURN;
+	//for DOM
+	Game.enemyActions();
     }
 }
 
@@ -275,7 +417,9 @@ export function moveLeftUp() {
         if (Game.player.move(-1, -1, Game)){
             Game.refreshVisibility();
         }
-        Game.game_state = GameStates.ENEMY_TURN;    
+        Game.game_state = GameStates.ENEMY_TURN;
+	//for DOM
+	Game.enemyActions();
     }
 }
 
@@ -283,8 +427,12 @@ export function moveRightUp() {
     if (Game.game_state == GameStates.PLAYER_TURN){
         if(Game.player.move(1, -1, Game)){
             Game.refreshVisibility();
+	    //for DOM
+	    Game.onPlayerMoved();
         }
         Game.game_state = GameStates.ENEMY_TURN;
+	//for DOM
+	Game.enemyActions();
     }
 }
 
@@ -292,19 +440,28 @@ export function moveLeftDown() {
     if (Game.game_state == GameStates.PLAYER_TURN){
         if(Game.player.move(-1, -1, Game)){
             Game.refreshVisibility();
+	    //for DOM
+	    Game.onPlayerMoved();
         }
         Game.game_state = GameStates.ENEMY_TURN;
+	//for DOM
+	Game.enemyActions();
     }
 }
 
 export function moveRightDown() {
     if (Game.game_state == GameStates.PLAYER_TURN){
         if (Game.player.move(1, -1, Game)){
-        Game.refreshVisibility();
+            Game.refreshVisibility();
+	    //for DOM
+	    Game.onPlayerMoved();
         }
         Game.game_state = GameStates.ENEMY_TURN;
+	//for DOM
+	Game.enemyActions();
     }
 }
+
 
 function setup(canvas) {
     console.log("setup...");
@@ -312,9 +469,14 @@ function setup(canvas) {
     Game.newGame(canvas);
     Game.generateMap();
     Game.placeEntities(Game._map, 3);
-    //uses map dimensions so has to come after
+    //uses map dimensions so has to come after it
+    Game.setupDOMMap();
     Game.setupFOV();
 
+    //new draw
+    Game.draws();
+
+    //for canvas
     //what it says on the tin
     function mainLoop() {
         Game.clearGame();
@@ -324,33 +486,14 @@ function setup(canvas) {
         Game.drawMessages();
         // AI turn
         if (Game.game_state == GameStates.ENEMY_TURN){
-            //for (entity in game.entities:
-            //label for easier breaking
-            ailoop:
-            for (let index = 0; index < Game.entities.length; index++) {
-                const entity = Game.entities[index];
-                if (entity.ai != null){
-                    //console.log("The " + entity.creature.name + " ponders the meaning of its existence.");
-                    entity.ai.take_turn(Game.player, Game);
-
-                    //break if player's dead!
-                    if (Game.player.creature.dead){
-                        //console.log("Break loop")
-                        break ailoop;
-                    }
-                }
-
-            }
-            if (Game.game_state != GameStates.PLAYER_DEAD){
-                Game.game_state = GameStates.PLAYER_TURN;
-            }
+            Game.enemyActions();
         }
 
         requestAnimationFrame(mainLoop);
     }
     
     //crucial! not part of main loop!
-    requestAnimationFrame(mainLoop);
+    //requestAnimationFrame(mainLoop);
 
 
 }
@@ -358,9 +501,9 @@ function setup(canvas) {
 
 window.onload = function() {
     //get canvas
-    var canvas = document.getElementById("canvas-game");
-    canvas.width = 800
-    canvas.height = 600
+    //var canvas = document.getElementById("canvas-game");
+    //canvas.width = 800
+    //canvas.height = 600
 
     //load assets
     resources.load([
@@ -369,7 +512,7 @@ window.onload = function() {
         "gfx/floor_cave.png",
         "gfx/kobold.png",
     ]);
-    resources.setReady(setup, canvas);
+    resources.setReady(setup, null);
 
     //keys
     function onKeyDown(event) {
