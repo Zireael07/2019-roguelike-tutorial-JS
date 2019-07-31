@@ -1,13 +1,16 @@
 import { findPath } from "./astar.js"
 
 class Entity{
-    constructor(x,y, name){
+    constructor(x,y, name, tile){
         this._x = x;
         this._y = y;
         this.name = name
+	this.tile = tile
         //console.log("Created entity @ " + x + " " + y);
         //optional components
         this.creature = null;
+	this.item = null;
+	this.inventory = null;
     }
     get_creatures_at(entities, x, y){
         //for...in statement iterates over user-defined properties in addition to the array elements
@@ -150,5 +153,29 @@ function distance_to(sx,sy, tx, ty){
     return (Math.sqrt(dx ** 2 + dy ** 2));
 }
 
+class Item{
+    constructor(owner){
+	this.owner = owner;
+    }
+}
 
-export {Entity, Creature, AI}
+class Inventory{
+    constructor(capacity){
+	this.capacity = capacity;
+	this.items = [];
+    }
+    add_item(item, Game){
+	if (this.items.length > this.capacity){
+	    return;
+	}
+	this.items.push(item);
+	//delete from game entities
+    	var index = Game.entities.indexOf( item );
+    	if (index !== -1) {
+           Game.entities.splice( index, 1 );
+    	}
+	Game.gameMessage("You pick up " + item.name, 'rgb(255,255,255)');
+    }
+}
+
+export {Entity, Creature, AI, Inventory, Item}
