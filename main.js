@@ -34,6 +34,7 @@ const GameStates = Object.freeze({
     PLAYER_TURN:   Symbol(0),
     ENEMY_TURN:  Symbol(1),
     PLAYER_DEAD: Symbol(2),
+    SHOW_INVENTORY: Symbol(3),
 });
 
 
@@ -47,6 +48,7 @@ var Game = {
     rng: null,
     entities: [],
     game_state: null,
+    previous_state: null,	
     messages: [],
     drawn: [],
     // to avoid losing track of it
@@ -211,6 +213,10 @@ var Game = {
 	p.innerHTML = "HP: " + Game.player.creature.hp + "/" + Game.player.creature.max_hp;
 	dom.appendChild(p);
 	Game.drawMessagesDOM();
+	//draw inventory
+	if (Game.game_state == GameStates.SHOW_INVENTORY){
+	     Game.inventoryMenu("Press the key next to an item to use it, or Esc to cancel.", Game.player.inventory);
+	}
     },
     //html dom functions
     clearDOM: function(){
@@ -303,6 +309,47 @@ var Game = {
             //this.context.fillText(el[0], 5.0, this.canvas.height-50+y);
             y += 12;
         }
+    },
+    menuRender: function(header, options){
+	var dom = document.getElementById("ui");
+	var p = document.createElement("p");
+	p.style.position = "absolute";
+	p.style.top = "20px";
+	p.style.left = "5px";
+	p.innerHTML = header;
+	dom.appendChild(p);
+
+	var header_height = 14;
+	var y = 0;
+	var letter_index = 'a'.charCodeAt(0);
+
+	//for (let option in options){
+	for (let index = 0; index < options.length; index++) {
+             const option = options[index];
+             var p = document.createElement("p");
+	     p.style.position = "absolute";
+	     p.style.top = 20+header_height+y +"px";
+	     p.style.left = "5px";
+	     p.innerHTML = "(" + String.fromCharCode(letter_index) + ") " + option;
+	     dom.appendChild(p);
+	     letter_index += 1;
+             y += 12;
+	}
+    },
+    inventoryMenu: function(header, inventory){
+	let options = [];
+	// show a menu with each item of the inventory as an option
+	if (inventory.items.length == 0){
+	      options = ['Inventory is empty.'];
+	}
+	else{
+	      //options = [item.name for item in inventory.items]		
+		for (let index = 0; index < inventory.items.length; index++) {
+                    const item = inventory.items[index];
+		    options.push(item.name);
+		}
+	}
+	this.menuRender(header, options);
     },
 
     //rendering functions from here down
@@ -402,6 +449,7 @@ function processKeyDown(key){
       case 66: movePlayer(-1, 1); break; // b
       case 78: movePlayer(1, 1); break; // n
       case 71: pickupItem(); break; //g
+      case 73: showInventory(); break; //i
       default: console.log(key);
     }
 }
@@ -436,6 +484,13 @@ export function pickupItem() {
 	    //for DOM
 	    Game.onPlayerMoved();
     }
+}
+
+export function showInventory() {
+    Game.previous_state = Game.game_state;
+    Game.game_state = GameStates.SHOW_INVENTORY;
+    //for DOM
+    Game.onPlayerMoved();
 }
 
 function setup(canvas) {
