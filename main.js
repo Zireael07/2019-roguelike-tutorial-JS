@@ -7,9 +7,12 @@ import { tintImage } from "./tint_image.js";
 
 //death
 function death_player(Game){
-    Game.gameMessage(this.owner.name + " is DEAD!", 'rgb(255,0,0)');
+    //console.log("Player killed");
+    Game.gameMessage("You are DEAD!", 'rgb(255,0,0)');
     //change to a special state - prevents moving, among other things
     Game.game_state = GameStates.PLAYER_DEAD;
+    //force refresh DOM render
+    Game.onPlayerMoved();
 }
 function death_monster(Game){
     Game.gameMessage(this.owner.name + " is dead!", 'rgb(127,127,127)');
@@ -192,6 +195,15 @@ var Game = {
         Game.renderMap(Game._map);
         Game.renderPlayer();
 	Game.renderEntities(Game.entities);
+	//nowhere else to put
+	var dom = document.getElementById("map");
+	var p = document.createElement("p");
+	p.style = "color: rgb(255,0,0);";
+	p.style.position = "absolute";
+	p.style.top = "10px";
+	p.style.left = "5px";
+	p.innerHTML = "HP: " + Game.player.creature.hp + "/" + Game.player.creature.max_hp;
+	dom.appendChild(p);
 	Game.drawMessagesDOM();
     },
     //html dom functions
