@@ -1,4 +1,4 @@
-import { Entity, Creature, AI } from "./entity.js"
+import { Entity, Creature, AI, Inventory, Item } from "./entity.js"
 
 import { GameMap } from "./gamemap.js"
 
@@ -26,6 +26,7 @@ function death_monster(Game){
 
 var player = new Entity(1, 1, "Player");
 player.creature = new Creature(player, 20, 40, 30, death_player);
+player.inventory = new Inventory(26);
 
 //simple enum for JS
 //https://stackoverflow.com/a/44447975
@@ -129,10 +130,15 @@ var Game = {
             let y = this.rng.range(1, (map._width - 5))
 
             //console.log(x,y);
-            let ent = new Entity(x,y, "kobold");
+            let ent = new Entity(x,y, "kobold", "gfx/kobold.png");
             ent.creature = new Creature(ent, 5, 20,30, death_monster);
             ent.ai = new AI(ent);
             this.entities.push(ent);
+
+	    //some items
+	    ent = new Entity(x,y, "healing potion", "gfx/potion.png");
+	    ent.item = new Item(ent);
+	    this.entities.push(ent);		
         }
 
     },
@@ -346,7 +352,7 @@ var Game = {
             if (this.isVisible(entities[i]._x, entities[i]._y)){
                 //this.iso = this.isoPos(entities[i]._x, entities[i]._y);
                 // entities need a slight offset to be placed more or less centrally
-		this.renderGfxDOM("gfx/kobold.png", entities[i]._x, entities[i]._y, [8,8]);
+		this.renderGfxDOM(entities[i].tile, entities[i]._x, entities[i]._y, [8,8]);
                 //this.renderGfxTile(resources.get("gfx/kobold.png"), this.iso[0]+8, this.iso[1]+8);
             }
         }
@@ -395,6 +401,7 @@ function processKeyDown(key){
       case 85: movePlayer(1, -1); break; // u
       case 66: movePlayer(-1, 1); break; // b
       case 78: movePlayer(1, 1); break; // n
+      case 71: pickupItem(); break; //g
       default: console.log(key);
     }
 }
@@ -413,6 +420,21 @@ export function movePlayer(x, y) {
 	//for DOM
 	Game.enemyActions();
 	
+    }
+}
+
+export function pickupItem() {
+    if (Game.game_state == GameStates.PLAYER_TURN){
+	   //console.log("Pressed pickup");
+           for (let index = 0; index < Game.entities.length; index++) {
+               const entity = Game.entities[index];
+               if (entity.item != null && entity._x == Game.player._x && entity._y == Game.player._y){
+                   Game.player.inventory.add_item(entity, Game);
+			break; //only pick up one item at once
+		   }
+	   }
+	    //for DOM
+	    Game.onPlayerMoved();
     }
 }
 
@@ -464,6 +486,7 @@ window.onload = function() {
         "gfx/wall_stone.png",
         "gfx/floor_cave.png",
         "gfx/kobold.png",
+	"gfx/potion.png",
     ]);
     resources.setReady(setup, null);
 
