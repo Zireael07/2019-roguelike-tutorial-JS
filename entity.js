@@ -124,6 +124,15 @@ class Creature{
             Game.gameMessage(this.owner.name + " attacks " + target.name + " but does no damage", 'rgb(255,255,255)');
         }
     };
+    heal(amount, Game){
+	if (this.hp >= this.max_hp){
+	    return;
+	}
+	//avoid overhealing
+	var amt = Math.min(amount, this.max_hp-this.hp);
+        this.hp += amt;
+	Game.gameMessage("Your wounds start to feel better!", 'rgb(0, 255, 0)');
+    };
 }
 
 class AI{
@@ -154,8 +163,9 @@ function distance_to(sx,sy, tx, ty){
 }
 
 class Item{
-    constructor(owner){
+    constructor(owner, use_f=null){
 	this.owner = owner;
+	this.use_function = use_f;
     }
 }
 
