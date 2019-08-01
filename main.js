@@ -23,6 +23,17 @@ function death_monster(Game){
     }
 }
 
+//use functions
+function use_heal(entity, Game){
+    entity.creature.heal(4, Game);
+    //delete from items
+    var index = entity.inventory.items.indexOf( this.owner );
+    if (index !== -1) {
+	entity.inventory.items.splice( index, 1);
+    }
+    Game.gameMessage("You have used " + this.owner.name);
+}
+
 
 var player = new Entity(1, 1, "Player");
 player.creature = new Creature(player, 20, 40, 30, death_player);
@@ -139,7 +150,7 @@ var Game = {
 
 	    //some items
 	    ent = new Entity(x,y, "healing potion", "gfx/potion.png");
-	    ent.item = new Item(ent);
+	    ent.item = new Item(ent, use_heal);
 	    this.entities.push(ent);		
         }
 
@@ -231,6 +242,12 @@ var Game = {
     		child.removeChild(child.firstChild);
 	    }
 	}
+	//same deal for ui
+	var ui = document.getElementById("ui");
+	while(ui.firstChild) {
+    		ui.removeChild(ui.firstChild);
+	    }
+
     },
     renderGfxDOM: function(src, x,y, offset){
 	var dom = document.getElementById("map");
@@ -351,6 +368,17 @@ var Game = {
 	}
 	this.menuRender(header, options);
     },
+    inventorySelect: function(index){
+	var item = this.player.inventory.items[index];
+	if (item.item.use_function != null){
+	    item.item.use_function(this.player, this);
+	    this.game_state = GameStates.ENEMY_TURN;
+	    //force refresh DOM render
+            this.onPlayerMoved();
+	    //for DOM
+	    Game.enemyActions();
+	}
+    },
 
     //rendering functions from here down
     clearGame: function() {
@@ -431,26 +459,40 @@ var Game = {
 }
 
 // main key input handler
+
+function processKeyInventory(key){
+    var index = key - 65; //65 is a
+
+    if (index >= 0){
+	Game.inventorySelect(index);
+    }
+}
+
 // key is the key code
 function processKeyDown(key){
-    switch (key) {
-      case 37: movePlayer(-1, 0); break;  //left
-      case 39: movePlayer(1, 0);  break;   //right
-      case 38: movePlayer(0, -1); break;     //up
-      case 40: movePlayer(0, 1);  break;    //down
-      // vim
-      case 72: movePlayer(-1, -0); break; // h
-      case 76: movePlayer(1, 0); break; // l
-      case 74: movePlayer(0, 1); break; // j
-      case 75: movePlayer(0, -1); break; // k
-      // diagonals
-      case 89: movePlayer(-1, -1); break; // y
-      case 85: movePlayer(1, -1); break; // u
-      case 66: movePlayer(-1, 1); break; // b
-      case 78: movePlayer(1, 1); break; // n
-      case 71: pickupItem(); break; //g
-      case 73: showInventory(); break; //i
-      default: console.log(key);
+    if (Game.game_state == GameStates.PLAYER_TURN){
+	    switch (key) {
+	      case 37: movePlayer(-1, 0); break;  //left
+	      case 39: movePlayer(1, 0);  break;   //right
+	      case 38: movePlayer(0, -1); break;     //up
+	      case 40: movePlayer(0, 1);  break;    //down
+	      // vim
+	      case 72: movePlayer(-1, -0); break; // h
+	      case 76: movePlayer(1, 0); break; // l
+	      case 74: movePlayer(0, 1); break; // j
+	      case 75: movePlayer(0, -1); break; // k
+	      // diagonals
+	      case 89: movePlayer(-1, -1); break; // y
+	      case 85: movePlayer(1, -1); break; // u
+	      case 66: movePlayer(-1, 1); break; // b
+	      case 78: movePlayer(1, 1); break; // n
+	      case 71: pickupItem(); break; //g
+	      case 73: showInventory(); break; //i
+	      default: console.log(key);
+	    }
+    }
+    else if (Game.game_state == GameStates.SHOW_INVENTORY){
+	processKeyInventory(key);
     }
 }
 
