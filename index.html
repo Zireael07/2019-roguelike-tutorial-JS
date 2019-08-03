@@ -8,6 +8,7 @@
   </head>
   <script src="jquery-3.3.1.js"></script>
   <script src="alea.js"></script>
+  <script type="module" src="save.js"></script>
   <script type="module" src="astar.js"></script>
   <script type="module" src="keypad.js"></script>
   <script src="resources.js"></script>
@@ -17,10 +18,16 @@
     <div class="wrapper">
     <div id="map" class="tile"></div>
     <!-- canvas id="canvas-game"></canvas -->
+    <div id="ui"></div>
     <!-- based on Ondrej Zara's js-like -->
     <div id="keypad">
       <table>
       <tbody>
+      <tr></tr>
+      <tr>
+      <td><input class="key_save" type="button" value="(s)ave"></td>
+      <td><input class="key_load" type="button" value="(l)oad"></td> 
+      </tr>
       <tr>
       <!-- button tag can be buggy so we use input type=button -->
       <!-- using hex values for Unicode characters -->

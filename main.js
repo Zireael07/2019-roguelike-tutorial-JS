@@ -1,6 +1,7 @@
 import { Entity, Creature, AI, Inventory, Item } from "./entity.js"
 
 import { GameMap } from "./gamemap.js"
+import {saveJS, loadJS} from "./save.js"
 
 import { createFOV } from "./fov.js";
 import { tintImage } from "./tint_image.js";
@@ -532,6 +533,91 @@ export function showInventory() {
     Game.previous_state = Game.game_state;
     Game.game_state = GameStates.SHOW_INVENTORY;
     //for DOM
+    Game.onPlayerMoved();
+}
+
+//stubs that call an actual save/load functions
+export function saveGame() {
+    saveJS(Game);
+}
+export function loadGame() {
+    //load data
+    var Game_data = loadJS();
+
+    //everything below is from dancing around the fact that JSON serialization loses Game functions
+    Object.assign(Game.player, Game_data.player);
+    let c = new Creature(Game.player, 1, 1,1,death_player);
+    Object.assign(c, Game_data.player.creature);
+    Game.player.creature = c;
+    //Game.player = Game_data.player
+
+    Object.assign(Game._map, Game_data._map);
+    //Game._map = Game_data._map
+    //those are sets, so need special handling
+    //clear 'em first
+    Game.visible.clear();
+    Game.seen.clear();
+    Game_data.visible.forEach(item => Game.visible.add(item))
+    //Game.visible = Game_data.visible
+    Game_data.seen.forEach(item => Game.seen.add(item))
+    //Game.seen = Game_data.seen
+    Game.rng = aleaPRNG();
+    //work around function loss
+    //Game.entities = Game_data.entities
+    Game.entities = [];
+     for (let index = 0; index < Game_data.entities.length; index++) {
+         const e = Game_data.entities[index];
+         let ent = new Entity(0,0, "kobold", "gfx/kobold.png");
+         Object.assign(ent, e);
+         if (e.item != null){
+             let i = new Item(ent);
+             Object.assign(i, e.item);
+             ent.item = i;
+         }
+         if (e.creature != null){
+             let c = new Creature(ent, 1, 1,1,death_monster);
+             Object.assign(c, e.creature);
+             ent.creature = c;
+             ent.ai = new AI(ent);
+         }
+
+         Game.entities.push(ent);
+    }
+
+    //special handling because Symbol
+    //Game.game_state = Game_data.game_state
+    var lookup = { 0: "PLAYER_TURN",
+    1: "ENEMY_TURN",
+    2: "PLAYER_DEAD",
+    3: "SHOW_INVENTORY"
+    }
+    Game.game_state = GameStates[lookup[Game_data.game_state]]
+
+    if (Game_data.game_state != null){
+        Game.previous_state = GameStates[lookup[Game_data.previous_state]]
+    }
+    //Game.previous_state = Game_data.previous_state
+    Game.messages = Game_data.messages
+    Game.iso = Game_data._iso
+
+    //fix references
+    for (let index = 0; index < Game.entities.length; index++) {
+        const e = Game.entities[index];
+        if (e.item != null){
+            e.item.owner = e
+        }
+        if (e.ai != null){
+            e.ai.owner = e
+        }
+        if (e.creature != null){
+            e.creature.owner = e
+        }
+    }
+
+    // fix player's ref, too
+    Game.player.creature.owner = Game.player
+
+    //force refresh DOM render
     Game.onPlayerMoved();
 }
 

@@ -1,5 +1,5 @@
 //ES 6 feature - import
-import { movePlayer } from "./main.js"
+import { movePlayer, loadGame, saveGame } from "./main.js"
 
 //crucial
 $( document ).ready(function() {
@@ -37,5 +37,12 @@ $( document ).ready(function() {
     $(".key_arrow9").click(function(e) {
         //console.log("Clicked a button 9");
         movePlayer(1,1);
+    });
+    $(".key_save").click(function(e){
+        saveGame();
+    });
+    $(".key_load").click(function(e){
+        console.log("Clicked load...");
+        loadGame();
     });
  });
