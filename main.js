@@ -113,23 +113,30 @@ var Game = {
 
     generateMap: function() {
         let map = [];
-        for (let x = 0; x < 20; x++) {
+        for (let x = 0; x < 15; x++) {
           map.push([]);
-          for (let y = 0; y < 20; y++) {
+          for (let y = 0; y < 15; y++) {
             map[x].push(1); //floor
           }
         }
 
         //walls around the map
-        for (let x =0; x < 20; x++){
+        for (let x =0; x < 15; x++){
             map[x][0] = 0;
-            map[x][19] = 0;
+            map[x][14] = 0;
         }
 
-        for (let y = 0; y < 20; y++){
+        for (let y = 0; y < 15; y++){
             map[0][y] = 0;
-            map[19][y] = 0;
+            map[14][y] = 0;
         }
+
+        //stairs at random point
+        let _x = this.rng.range(1, (14 -2));
+        let _y  = this.rng.range(1, (14 -2));
+        console.log("Stairs at " + _x + " " + _y);
+        map[_x][_y] = 2;
+
 
         this._map = new GameMap(map);
     },
@@ -267,9 +274,12 @@ var Game = {
 	if (tile == 0){
 	   img.src = "gfx/wall_stone.png";
 	}
-	else{
+	else if (tile == 1){
 	   img.src = "gfx/floor_cave.png";
-	}
+    }
+    else if (tile == 2){
+        img.src = "gfx/stairs_down.png";
+    }
 	img.style.position = "absolute";
         var i = this.tileToIndex(x,y);
 	//console.log(dom.childNodes[0].childNodes);
@@ -486,9 +496,11 @@ function processKeyDown(key){
 	      case 89: movePlayer(-1, -1); break; // y
 	      case 85: movePlayer(1, -1); break; // u
 	      case 66: movePlayer(-1, 1); break; // b
-	      case 78: movePlayer(1, 1); break; // n
+          case 78: movePlayer(1, 1); break; // n
+          //other
 	      case 71: pickupItem(); break; //g
-	      case 73: showInventory(); break; //i
+          case 73: showInventory(); break; //i
+          case 13: nextLevel(); break; //enter
 	      default: console.log(key);
 	    }
     }
@@ -534,6 +546,25 @@ export function showInventory() {
     Game.game_state = GameStates.SHOW_INVENTORY;
     //for DOM
     Game.onPlayerMoved();
+}
+
+export function nextLevel() {
+    if (Game._map.isStairs(Game.player._x, Game.player._y)){
+        Game.gameMessage("You descend deeper in the dungeon", 'rgb(238,130,238)');
+        Game.entities = [];
+        //generate new level
+        Game.generateMap();
+        Game.placeEntities(Game._map, 3);
+        Game.setupFOV();
+        //set player pos
+        Game.player._x = 1;
+        Game.player._y = 1;
+        //for DOM
+        Game.onPlayerMoved();
+    }
+    else{
+        Game.gameMessage("There are no stairs here", 'rgb(255,255,255)');
+    }
 }
 
 //stubs that call an actual save/load functions

@@ -24,6 +24,9 @@ class GameMap {
     isBlocked(x, y){
       return this._tiles[x][y] == 0;
     };
+    isStairs(x, y){
+      return this._tiles[x][y] == 2;
+    };
 }
 
 export { GameMap }
