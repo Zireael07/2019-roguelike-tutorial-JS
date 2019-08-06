@@ -5,13 +5,24 @@ class Entity{
         this._x = x;
         this._y = y;
         this.name = name
-	this.tile = tile
+	    this.tile = tile
         //console.log("Created entity @ " + x + " " + y);
         //optional components
         this.creature = null;
-	this.item = null;
-	this.inventory = null;
+	    this.item = null;
+        this.inventory = null;
+        this.equipment = null;
     }
+    display_name(){
+        if (this.item){
+            if (this.equipment && this.equipment.equipped){
+                return this.name + " (equipped)";
+            }
+            else{
+                return this.name;
+            }
+        }
+    };
     get_creatures_at(entities, x, y){
         //for...in statement iterates over user-defined properties in addition to the array elements
         for (let index = 0; index < entities.length; index++) {
@@ -22,6 +33,17 @@ class Entity{
             }
             return null;
     };
+    // returns the equipment in a slot, or null if it's empty
+    get_equipped_in_slot(slot){
+        for (let index = 0; index = this.inventory.length; index++){
+            const obj = this.inventory[index];
+            if (obj.equipment != null && obj.equipment.slot == slot && obj.equipment.equipped){
+                return obj.equipment;
+            }
+        }
+    return null;
+    };
+
     move(dx,dy, Game){
         var tx = this._x + dx
         var ty = this._y + dy
@@ -109,7 +131,16 @@ class Creature{
             return;
         }
 
-        var damage = Game.rng.roller("1d6");
+        var bonuses = 0;
+        if (this.owner.inventory != null){
+            var array = this.owner.inventory.equipped_items();
+            for (let index = 0; index < array.length; index++) {
+                const element = array[index];
+                bonuses += element.equipment.attack;
+            }
+        }
+
+        var damage = Game.rng.roller("1d6") + bonuses;
 
         var color = 'rgb(127,127,127)'
         if (target == Game.player){
@@ -169,6 +200,36 @@ class Item{
     }
 }
 
+class Equipment{
+    constructor(owner, slot, att){
+        this.owner = owner;
+        this.slot = slot;
+        this.equipped = false;
+        this.attack = att;
+    }
+    toggle_equip(actor, Game){
+    if (this.equipped){
+        this.unequip(actor, Game);
+    }
+    else{
+        this.equip(actor, Game);
+    }
+    };
+    equip(actor, Game){
+        var old_equipment = actor.get_equipped_in_slot(this.slot);
+        if (old_equipment != null){
+            old_equipment.unequip(actor);
+        }
+        this.equipped = true;
+        Game.gameMessage("Item equipped", 'rgb(255,255,255)');
+        
+    };
+    unequip(actor, Game){
+        this.equipped = false;
+        Game.gameMessage("Took off item", 'rgb(255,255,255');
+    };
+}
+
 class Inventory{
     constructor(capacity){
 	this.capacity = capacity;
@@ -185,7 +246,17 @@ class Inventory{
            Game.entities.splice( index, 1 );
     	}
 	Game.gameMessage("You pick up " + item.name, 'rgb(255,255,255)');
+    };
+    equipped_items(){
+        let list_equipped = [];
+        for (let index = 0; index < this.items.length; index++) {
+            const item = this.items[index];
+            if (item.equipment != null && item.equipment.equipped){
+                list_equipped.push(item);
+            }
+        }
+        return list_equipped;
     }
 }
 
-export {Entity, Creature, AI, Inventory, Item}
+export {Entity, Creature, AI, Inventory, Item, Equipment}

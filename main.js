@@ -1,4 +1,4 @@
-import { Entity, Creature, AI, Inventory, Item } from "./entity.js"
+import { Entity, Creature, AI, Inventory, Item, Equipment } from "./entity.js"
 
 import { GameMap } from "./gamemap.js"
 import {saveJS, loadJS} from "./save.js"
@@ -34,7 +34,9 @@ function use_heal(entity, Game){
     }
     Game.gameMessage("You have used " + this.owner.name);
 }
-
+function use_equip(entity, Game){
+    this.owner.equipment.toggle_equip(entity, Game);
+}
 
 var player = new Entity(1, 1, "Player");
 player.creature = new Creature(player, 20, 40, 30, death_player);
@@ -155,12 +157,20 @@ var Game = {
             ent.creature = new Creature(ent, 5, 20,30, death_monster);
             ent.ai = new AI(ent);
             this.entities.push(ent);
+        }
 
 	    //some items
-	    ent = new Entity(x,y, "healing potion", "gfx/potion.png");
+        // Choose a random location in the map
+        let x = this.rng.range(1, (map._height - 5));
+        let y = this.rng.range(1, (map._width - 5));
+        let ent = new Entity(x,y, "healing potion", "gfx/potion.png");
 	    ent.item = new Item(ent, use_heal);
-	    this.entities.push(ent);		
-        }
+        this.entities.push(ent);		
+        
+        ent = new Entity(3,3, "sword", "gfx/longsword.png");
+        ent.item = new Item(ent, use_equip);
+        ent.equipment = new Equipment(ent, "MAIN_HAND", 5);
+        this.entities.push(ent);
 
     },
     //FOV
@@ -373,8 +383,8 @@ var Game = {
 	else{
 	      //options = [item.name for item in inventory.items]		
 		for (let index = 0; index < inventory.items.length; index++) {
-                    const item = inventory.items[index];
-		    options.push(item.name);
+            const item = inventory.items[index];
+		    options.push(item.display_name());
 		}
 	}
 	this.menuRender(header, options);
